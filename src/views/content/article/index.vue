@@ -71,6 +71,16 @@
           <el-table-column prop="id" label="博文ID" align="center" />
           <el-table-column prop="title" label="标题" align="center" />
           <el-table-column prop="summary" label="摘要" align="center" />
+          <el-table-column prop="status" label="状态" align="center">
+            <template slot-scope="scope">
+              <el-switch
+                v-model="scope.row.status"
+                active-value="0"
+                inactive-value="1"
+                @change="handleStatusChange(scope.row)"
+              />
+            </template>
+          </el-table-column>
           <el-table-column prop="createTime" label="创建时间" align="center" />
 
           <el-table-column
@@ -117,6 +127,7 @@ import {
   delArticle
 }
 from '@/api/content/article'
+import { changeArticleStatus } from '@/api/content/article'
 
 export default {
   name: 'Article',
@@ -168,6 +179,21 @@ export default {
         this.total = response.total
         this.loading = false
       })
+    },
+    /** 修改文章状态 */
+    handleStatusChange(row) {
+      const text = row.status === '0' ? '发布' : '转为草稿'
+      this.$modal
+        .confirm('确认要将《' + row.title + '》' + text + '吗？')
+        .then(function() {
+          return changeArticleStatus(row.id, row.status)
+        })
+        .then(() => {
+          this.$modal.msgSuccess(text + '成功')
+        })
+        .catch(function() {
+          row.status = row.status === '0' ? '1' : '0'
+        })
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
